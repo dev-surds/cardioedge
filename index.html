@@ -576,11 +576,11 @@ let frameCtx         = null;
 // (b) the frame-to-frame variation (AC signal) is present — that's the pulse
 let fingerDetected       = false;
 let fingerConfirmedFrames= 0;
-const FINGER_CONFIRM_FRAMES = 8;
+const FINGER_CONFIRM_FRAMES = 3;
 
 // Raw red channel history for variation calculation
 let redHistory = [];
-const RED_HISTORY_LEN = 15; // frames to keep for variation check
+const RED_HISTORY_LEN = 8; // frames to keep for variation check
 
 // PPG buffer
 const PPG_SAMPLE_RATE = 30;
