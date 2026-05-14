@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CardioEdge AI</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --navy:#0D1B3E; --navy2:#091428; --teal:#00B4CC; --mint:#00E5C3;
+  --red:#E05252; --white:#FFFFFF; --offwhite:#C8DCE8; --gray:#4A6278;
+  --card:#132040; --card2:#0A1E38; --amber:#FFC857;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--navy2);color:var(--white);font-family:'Syne',sans-serif;min-height:100vh;overflow-x:hidden}
+#app{max-width:460px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+
+header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 13px;border-bottom:1px solid rgba(0,180,204,0.15)}
+.logo{display:flex;align-items:center;gap:9px}
+.logo-icon{width:30px;height:30px;background:var(--teal);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.logo-icon svg{width:18px;height:18px}
+.logo-text{font-size:14px;font-weight:700}
+.logo-sub{font-size:9px;color:var(--gray);font-family:'DM Mono',monospace;letter-spacing:1px}
+.enclave-badge{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:1.5px;color:var(--mint);border:1px solid rgba(0,229,195,0.3);padding:4px 8px;border-radius:4px;display:flex;align-items:center;gap:5px}
+.enc-dot{width:5px;height:5px;border-radius:50%;background:var(--mint);animation:pdot 2s ease-in-out infinite}
+@keyframes pdot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+
+.info-bar{padding:6px 12px;font-size:9px;font-family:'DM Mono',monospace;letter-spacing:1px;text-align:center;border-bottom:1px solid}
+.info-bar.real{background:rgba(0,229,195,.07);border-color:rgba(0,229,195,.2);color:var(--mint)}
+.info-bar.warn{background:rgba(255,200,87,.07);border-color:rgba(255,200,87,.2);color:var(--amber)}
+.info-bar.err{background:rgba(224,82,82,.07);border-color:rgba(224,82,82,.2);color:var(--red)}
+
+.screen{display:none;flex-direction:column;flex:1;padding:18px;animation:fi .3s ease}
+.screen.active{display:flex}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.scroll{flex:1;overflow-y:auto}.scroll::-webkit-scrollbar{display:none}
+
+.back-btn{display:flex;align-items:center;gap:5px;background:none;border:none;color:var(--gray);font-family:'Syne',sans-serif;font-size:12px;cursor:pointer;padding:0;margin-bottom:16px;transition:color .2s}
+.back-btn:hover{color:var(--teal)}
+.cta{width:100%;padding:16px;background:var(--teal);color:var(--navy2);border:none;border-radius:13px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:9px;transition:all .2s;margin-bottom:10px}
+.cta:hover{background:#00cce6;transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,180,204,.3)}
+.cta:disabled{background:var(--gray);cursor:not-allowed;transform:none;box-shadow:none}
+.sec-btn{width:100%;padding:13px;background:transparent;color:var(--offwhite);border:1px solid rgba(255,255,255,.1);border-radius:13px;font-family:'Syne',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.sec-btn:hover{border-color:rgba(0,180,204,.4);color:var(--teal)}
+.badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:5px;font-family:'DM Mono',monospace}
+.b-screen{background:rgba(0,180,204,.15);color:var(--teal);border:1px solid rgba(0,180,204,.3)}
+.b-border{background:rgba(255,200,87,.15);color:var(--amber);border:1px solid rgba(255,200,87,.3)}
+.b-refer{background:rgba(224,82,82,.15);color:var(--red);border:1px solid rgba(224,82,82,.3)}
+
+/* HOME */
+.home-greeting{font-size:11px;color:var(--gray);font-family:'DM Mono',monospace;letter-spacing:1px;margin-bottom:4px}
+.home-title{font-size:24px;font-weight:800;line-height:1.2;margin-bottom:18px}
+.home-title span{color:var(--teal)}
+.status-card{background:var(--card);border:1px solid rgba(0,180,204,.2);border-radius:14px;padding:15px;margin-bottom:14px;display:flex;align-items:center;gap:13px}
+.status-ring{width:48px;height:48px;flex-shrink:0;border-radius:50%;border:3px solid rgba(0,180,204,.15);display:flex;align-items:center;justify-content:center;position:relative}
+.status-ring::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:3px solid transparent;border-top-color:var(--teal);animation:spin 3s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.status-inner{font-size:18px}
+.status-label{font-size:10px;color:var(--gray);font-family:'DM Mono',monospace;margin-bottom:2px}
+.status-value{font-size:14px;font-weight:700;color:var(--mint)}
+.last-reading{background:var(--card2);border-radius:12px;padding:13px;margin-bottom:16px}
+.lr-label{font-size:10px;color:var(--gray);font-family:'DM Mono',monospace;letter-spacing:1px;margin-bottom:8px}
+.lr-row{display:flex;align-items:center;justify-content:space-between}
+
+/* COMPATIBILITY WARNING CARD */
+.compat-card{border-radius:12px;padding:13px 15px;margin-bottom:14px;display:flex;gap:11px;align-items:flex-start}
+.compat-card.ok{background:rgba(0,229,195,.06);border:1px solid rgba(0,229,195,.2)}
+.compat-card.warn{background:rgba(255,200,87,.06);border:1px solid rgba(255,200,87,.2)}
+.compat-card.bad{background:rgba(224,82,82,.06);border:1px solid rgba(224,82,82,.2)}
+.compat-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.compat-title{font-size:12px;font-weight:700;margin-bottom:3px}
+.compat-card.ok .compat-title{color:var(--mint)}
+.compat-card.warn .compat-title{color:var(--amber)}
+.compat-card.bad .compat-title{color:var(--red)}
+.compat-body{font-size:11px;color:var(--offwhite);line-height:1.5}
+
+/* CAPTURE */
+.cap-title{font-size:20px;font-weight:800;margin-bottom:4px}
+.cap-sub{font-size:11px;color:var(--gray);margin-bottom:14px;line-height:1.5}
+
+.cam-outer{position:relative;border-radius:16px;overflow:hidden;border:2px solid rgba(0,180,204,.2);background:#000;height:190px;margin-bottom:12px;transition:border-color .3s,box-shadow .3s}
+.cam-outer.live{border-color:var(--teal);box-shadow:0 0 18px rgba(0,180,204,.2)}
+.cam-outer.good{border-color:var(--mint);box-shadow:0 0 18px rgba(0,229,195,.25)}
+#videoEl{width:100%;height:100%;object-fit:cover;display:block}
+#waveCanvas{position:absolute;bottom:0;left:0;width:100%;height:55px;display:none}
+
+#camOverlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--card);transition:opacity .4s}
+#camOverlay.hidden{opacity:0;pointer-events:none}
+.fi-icon{font-size:42px;margin-bottom:8px}
+.cam-hint-strong{color:var(--teal);font-size:13px;font-weight:700;text-align:center;display:block;margin-bottom:3px}
+.cam-hint-p{font-size:11px;color:var(--gray);text-align:center;padding:0 12px;line-height:1.4}
+
+/* Device not supported overlay */
+#notSupported{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:var(--card);padding:20px;text-align:center;gap:10px}
+#notSupported .ns-icon{font-size:36px}
+#notSupported .ns-title{font-size:14px;font-weight:700;color:var(--amber)}
+#notSupported .ns-body{font-size:11px;color:var(--offwhite);line-height:1.6}
+#notSupported .ns-small{font-size:10px;color:var(--gray);font-family:'DM Mono',monospace;margin-top:4px}
+
+/* Torch status badge inside camera */
+#torchBadge{position:absolute;top:10px;right:10px;font-size:9px;font-family:'DM Mono',monospace;padding:3px 8px;border-radius:20px;display:none}
+#torchBadge.on{background:rgba(0,229,195,.2);color:var(--mint);border:1px solid rgba(0,229,195,.4);display:block}
+#torchBadge.off{background:rgba(255,200,87,.15);color:var(--amber);border:1px solid rgba(255,200,87,.3);display:block}
+#torchBadge.na{background:rgba(74,98,120,.2);color:var(--gray);border:1px solid rgba(74,98,120,.3);display:block}
+
+/* Signal meter — replaces light meter */
+.signal-section{display:none;margin-bottom:12px}
+.signal-section.visible{display:block}
+.signal-row{display:flex;align-items:center;gap:10px;margin-bottom:5px}
+.signal-lbl{font-size:10px;color:var(--gray);font-family:'DM Mono',monospace;letter-spacing:1px;white-space:nowrap;width:90px}
+.signal-bar{flex:1;height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.signal-fill{height:100%;border-radius:3px;width:0%;transition:width .15s,background .3s}
+.signal-val{font-size:11px;font-family:'DM Mono',monospace;width:38px;text-align:right}
+.finger-status{font-size:11px;font-family:'DM Mono',monospace;margin-top:3px;text-align:center;min-height:16px;transition:color .3s}
+
+/* Confidence dots */
+.conf-dots{display:flex;gap:4px;justify-content:center;margin-top:6px}
+.conf-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.1);transition:background .3s}
+.conf-dot.filled{background:var(--mint)}
+.conf-dot.partial{background:var(--amber)}
+
+.progress-zone{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.pr-wrap{position:relative;width:72px;height:72px;flex-shrink:0}
+.pr-svg{transform:rotate(-90deg)}
+.pr-bg{fill:none;stroke:rgba(255,255,255,.06);stroke-width:6}
+.pr-fill{fill:none;stroke:var(--teal);stroke-width:6;stroke-linecap:round;stroke-dasharray:201;stroke-dashoffset:201;transition:stroke-dashoffset .8s ease}
+.pr-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.pr-secs{font-size:20px;font-weight:800;line-height:1}
+.pr-lbl{font-size:8px;color:var(--gray);font-family:'DM Mono',monospace;letter-spacing:1px}
+.pr-info{flex:1}
+.q-row{display:flex;justify-content:space-between;font-size:10px;color:var(--gray);font-family:'DM Mono',monospace;margin-bottom:4px}
+.q-bar{height:4px;background:rgba(255,255,255,.06);border-radius:2px;overflow:hidden}
+.q-fill{height:100%;background:var(--mint);border-radius:2px;transition:width .3s;width:0%}
+
+.vitals-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.vital-card{background:var(--card);border-radius:10px;padding:10px 8px;text-align:center;border:1px solid rgba(255,255,255,.05)}
+.vital-val{font-size:19px;font-weight:800;color:var(--teal);font-family:'DM Mono',monospace;min-height:25px}
+.vital-val.dim{color:var(--gray)}
+.vital-lbl{font-size:8px;color:var(--gray);letter-spacing:.5px;margin-top:2px}
+.real-tag{font-size:8px;font-family:'DM Mono',monospace;color:var(--mint);background:rgba(0,229,195,.1);border:1px solid rgba(0,229,195,.25);border-radius:3px;padding:1px 5px;margin-left:3px}
+
+/* ANALYZING */
+.enc-box{background:var(--card);border:1px solid rgba(0,229,195,.25);border-radius:14px;padding:15px;margin-bottom:13px}
+.enc-hdr{display:flex;align-items:center;gap:8px;margin-bottom:11px}
+.enc-hdr-dot{width:8px;height:8px;border-radius:50%;background:var(--mint);animation:pdot 1.5s ease-in-out infinite}
+.enc-hdr-txt{font-size:10px;font-family:'DM Mono',monospace;color:var(--mint);letter-spacing:1px}
+.layer-list{display:flex;flex-direction:column;gap:7px}
+.layer-item{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:9px;background:var(--card2);transition:all .3s;opacity:.35}
+.layer-item.active{opacity:1;background:rgba(0,180,204,.08);border:1px solid rgba(0,180,204,.2)}
+.layer-item.done{opacity:1}
+.l-num{font-size:10px;font-family:'DM Mono',monospace;color:var(--gray);width:18px}
+.l-name{font-size:13px;font-weight:600;flex:1}
+.l-stat{font-size:10px;font-family:'DM Mono',monospace}
+.l-stat.running{color:var(--teal)}.l-stat.done{color:var(--mint)}.l-stat.wait{color:var(--gray)}
+.l-real{font-size:8px;font-family:'DM Mono',monospace;color:var(--mint);background:rgba(0,229,195,.1);border:1px solid rgba(0,229,195,.2);border-radius:3px;padding:1px 4px;margin-left:4px}
+.l-demo{font-size:8px;font-family:'DM Mono',monospace;color:var(--amber);background:rgba(255,200,87,.08);border:1px solid rgba(255,200,87,.2);border-radius:3px;padding:1px 4px;margin-left:4px}
+.priv-note{background:rgba(0,229,195,.06);border:1px solid rgba(0,229,195,.2);border-radius:10px;padding:11px 13px;display:flex;align-items:center;gap:10px}
+.priv-icon{font-size:17px;flex-shrink:0}
+.priv-text{font-size:12px;color:var(--offwhite);line-height:1.5}
+.priv-text strong{color:var(--mint)}
+
+/* RESULTS */
+.result-tier{border-radius:14px;padding:18px;margin-bottom:14px;position:relative;overflow:hidden}
+.result-tier::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at top right,var(--tg),transparent 60%)}
+.rt-screen{--tg:rgba(0,180,204,.15);background:rgba(0,180,204,.08);border:1px solid rgba(0,180,204,.3)}
+.rt-border{--tg:rgba(255,200,87,.15);background:rgba(255,200,87,.08);border:1px solid rgba(255,200,87,.3)}
+.rt-refer{--tg:rgba(224,82,82,.15);background:rgba(224,82,82,.08);border:1px solid rgba(224,82,82,.3)}
+.tier-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;position:relative;z-index:1}
+.tier-name{font-size:12px;font-weight:700;font-family:'DM Mono',monospace;letter-spacing:1.5px}
+.tn-s{color:var(--teal)}.tn-b{color:var(--amber)}.tn-r{color:var(--red)}
+.tier-conf{font-size:10px;color:var(--gray);font-family:'DM Mono',monospace}
+.tier-desc{font-size:14px;font-weight:700;margin-bottom:7px;position:relative;z-index:1;line-height:1.4}
+.tier-detail{font-size:12px;color:var(--offwhite);line-height:1.5;position:relative;z-index:1}
+
+.real-vitals-box{background:var(--card2);border:1px solid rgba(0,229,195,.2);border-radius:12px;padding:14px;margin-bottom:13px}
+.rv-label{font-size:10px;color:var(--mint);font-family:'DM Mono',monospace;letter-spacing:1px;margin-bottom:10px}
+.rv-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.rv-item{text-align:center}
+.rv-val{font-size:18px;font-weight:800;color:var(--white);font-family:'DM Mono',monospace}
+.rv-sub{font-size:9px;color:var(--gray);margin-top:2px}
+.rv-note{font-size:10px;color:var(--gray);margin-top:10px;line-height:1.5;font-family:'DM Mono',monospace}
+
+.explain-box{background:var(--card);border-radius:14px;padding:16px;margin-bottom:13px}
+.explain-lbl{font-size:10px;color:var(--teal);font-family:'DM Mono',monospace;letter-spacing:1px;margin-bottom:10px}
+#resultCanvas{width:100%;height:85px;border-radius:7px}
+.explain-legend{display:flex;gap:14px;margin-top:8px;flex-wrap:wrap}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--gray)}
+.leg-dot{width:8px;height:8px;border-radius:2px}
+.leg-peak{background:var(--mint)}.leg-irr{background:var(--red);opacity:.8}
+.explain-txt{margin-top:9px;font-size:11px;color:var(--offwhite);line-height:1.6}
+
+.action-card{border-radius:13px;padding:14px;margin-bottom:10px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:all .2s;border:1px solid transparent}
+.action-card:hover{transform:translateY(-1px)}
+.ac-primary{background:var(--teal);color:var(--navy2)}
+.ac-secondary{background:var(--card);border-color:rgba(255,255,255,.1)}
+.ac-icon{font-size:20px;flex-shrink:0}
+.ac-title{font-size:13px;font-weight:700}
+.ac-sub{font-size:11px;opacity:.7;margin-top:1px}
+
+/* HISTORY */
+.hist-list{display:flex;flex-direction:column;gap:9px}
+.hist-item{background:var(--card);border-radius:11px;padding:13px 15px;display:flex;align-items:center;justify-content:space-between;border:1px solid rgba(255,255,255,.05)}
+.hist-date{font-size:13px;font-weight:600}
+.hist-sub{font-size:10px;color:var(--gray);margin-top:2px;font-family:'DM Mono',monospace}
+
+/* SYMPTOMS */
+.sym-item{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:13px 15px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:all .2s;margin-bottom:9px}
+.sym-item:hover{border-color:rgba(0,180,204,.3)}
+.sym-item.sel{border-color:var(--teal);background:rgba(0,180,204,.08)}
+.sym-text{font-size:13px;font-weight:600}
+.sym-sub{font-size:10px;color:var(--gray);margin-top:2px}
+.sym-toggle{width:21px;height:21px;border-radius:5px;border:2px solid var(--gray);display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+.sym-item.sel .sym-toggle{background:var(--teal);border-color:var(--teal)}
+.sym-check{display:none;font-size:11px;color:var(--navy2);font-weight:700}
+.sym-item.sel .sym-check{display:block}
+
+/* TAB BAR */
+.tab-bar{display:flex;border-top:1px solid rgba(255,255,255,.06);padding:10px 0 18px;background:var(--navy2);position:sticky;bottom:0;z-index:10}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:5px;transition:all .2s;border:none;background:none}
+.tab-icon{font-size:19px}
+.tab-lbl{font-size:9px;font-family:'DM Mono',monospace;letter-spacing:.5px;color:var(--gray);transition:color .2s}
+.tab-item.active .tab-lbl{color:var(--teal)}
+.tab-item.active .tab-icon{filter:drop-shadow(0 0 4px rgba(0,180,204,.5))}
+
+/* TOAST */
+.toast{position:fixed;bottom:88px;left:50%;transform:translateX(-50%));background:var(--card);border:1px solid rgba(0,229,195,.3);color:var(--mint);font-size:11px;font-family:'DM Mono',monospace;padding:9px 16px;border-radius:28px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:100;white-space:nowrap;max-width:90vw;text-align:center}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Dynamic info bar -->
+  <div class="info-bar real" id="infoBar">✦ REAL PPG · REAL HR & HRV · AF CLASSIFICATION = DEMO ✦</div>
+
+  <header>
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none">
+          <path d="M12 21C12 21 3 14.5 3 8.5C3 5.42 5.42 3 8.5 3C10.24 3 11.91 3.81 13 5.08C14.09 3.81 15.76 3 17.5 3C20.58 3 23 5.42 23 8.5" stroke="#0D1B3E" stroke-width="2" stroke-linecap="round"/>
+          <polyline points="1,12 5,12 7,7 9,17 11,11 13,14 15,12 23,12" stroke="#0D1B3E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-text">CardioEdge AI</div>
+        <div class="logo-sub">EDGE · PRIVATE · EXPLAINED</div>
+      </div>
+    </div>
+    <div class="enclave-badge"><div class="enc-dot"></div>ON-DEVICE</div>
+  </header>
+
+  <!-- HOME -->
+  <div class="screen active" id="screen-home">
+    <div class="scroll">
+      <div class="home-greeting">GOOD MORNING, DEMO USER</div>
+      <div class="home-title">How's your<br/><span>heart today?</span></div>
+
+      <!-- Device compatibility card — filled by JS -->
+      <div id="compatCard" class="compat-card ok" style="display:none">
+        <div class="compat-icon" id="compatIcon">✅</div>
+        <div>
+          <div class="compat-title" id="compatTitle">Checking device…</div>
+          <div class="compat-body" id="compatBody"></div>
+        </div>
+      </div>
+
+      <div class="status-card">
+        <div class="status-ring"><div class="status-inner">💚</div></div>
+        <div>
+          <div class="status-label">DEVICE STATUS</div>
+          <div class="status-value" id="statusValue">Checking device…</div>
+          <div style="font-size:10px;color:var(--gray);margin-top:2px;font-family:'DM Mono',monospace" id="statusSub">Please wait</div>
+        </div>
+      </div>
+
+      <div class="last-reading">
+        <div class="lr-label">LAST READING</div>
+        <div class="lr-row">
+          <div>
+            <div style="font-size:13px;font-weight:600" id="lastReadingDate">No readings yet</div>
+            <div style="font-size:10px;color:var(--gray);margin-top:2px;font-family:'DM Mono',monospace" id="lastReadingSub">Complete a reading to see results</div>
+          </div>
+          <span class="badge b-screen" id="lastReadingBadge" style="display:none">—</span>
+        </div>
+      </div>
+
+      <button class="cta" id="startBtn" onclick="goCapture()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 1h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 8.91"/></svg>
+        Start Heart Check
+      </button>
+      <button class="sec-btn" onclick="goSymptoms()">Log Symptoms First</button>
+    </div>
+  </div>
+
+  <!-- SYMPTOMS -->
+  <div class="screen" id="screen-symptoms">
+    <button class="back-btn" onclick="goHome()">← Back</button>
+    <div style="font-size:20px;font-weight:800;margin-bottom:4px">How are you feeling?</div>
+    <div style="font-size:11px;color:var(--gray);margin-bottom:18px">Tap any symptoms you have right now.</div>
+    <div class="scroll">
+      <div class="sym-item" onclick="toggleSym(this)"><div><div class="sym-text">Heart palpitations</div><div class="sym-sub">Fluttering or racing sensation</div></div><div class="sym-toggle"><span class="sym-check">✓</span></div></div>
+      <div class="sym-item" onclick="toggleSym(this)"><div><div class="sym-text">Shortness of breath</div><div class="sym-sub">At rest or mild activity</div></div><div class="sym-toggle"><span class="sym-check">✓</span></div></div>
+      <div class="sym-item" onclick="toggleSym(this)"><div><div class="sym-text">Unusual fatigue</div><div class="sym-sub">More tired than normal</div></div><div class="sym-toggle"><span class="sym-check">✓</span></div></div>
+      <div class="sym-item" onclick="toggleSym(this)"><div><div class="sym-text">Chest discomfort</div><div class="sym-sub">Pressure, tightness or ache</div></div><div class="sym-toggle"><span class="sym-check">✓</span></div></div>
+      <div class="sym-item" onclick="toggleSym(this)"><div><div class="sym-text">Dizziness</div><div class="sym-sub">Feeling faint or unsteady</div></div><div class="sym-toggle"><span class="sym-check">✓</span></div></div>
+      <div class="sym-item" onclick="toggleSym(this)"><div><div class="sym-text">Ankle or leg swelling</div><div class="sym-sub">Fluid retention sign</div></div><div class="sym-toggle"><span class="sym-check">✓</span></div></div>
+      <div class="sym-item" onclick="toggleSym(this)"><div><div class="sym-text">Reduced exercise tolerance</div><div class="sym-sub">Can't do what I normally can</div></div><div class="sym-toggle"><span class="sym-check">✓</span></div></div>
+      <div class="sym-item" onclick="toggleSym(this)"><div><div class="sym-text">None of the above</div><div class="sym-sub">Feeling normal today</div></div><div class="sym-toggle"><span class="sym-check">✓</span></div></div>
+      <button class="cta" style="margin-top:10px" onclick="goCapture()">Continue to Heart Check →</button>
+    </div>
+  </div>
+
+  <!-- CAPTURE -->
+  <div class="screen" id="screen-capture">
+    <button class="back-btn" onclick="cancelCapture()">← Cancel</button>
+    <div class="cap-title">Place finger on camera</div>
+    <div class="cap-sub" id="capSub">Cover the rear camera lens completely with your fingertip. Keep very still.</div>
+
+    <div class="cam-outer" id="camOuter">
+      <video id="videoEl" autoplay playsinline muted></video>
+      <canvas id="waveCanvas"></canvas>
+
+      <!-- Torch status badge -->
+      <div id="torchBadge">🔦 TORCH</div>
+
+      <div id="camOverlay">
+        <div class="fi-icon" id="overlayIcon">📷</div>
+        <span class="cam-hint-strong" id="overlayTitle">Requesting camera…</span>
+        <p class="cam-hint-p" id="overlayBody">Please allow camera access when prompted</p>
+      </div>
+
+      <!-- Not supported screen -->
+      <div id="notSupported">
+        <div class="ns-icon">📵</div>
+        <div class="ns-title" id="nsTitle">Device not fully supported</div>
+        <div class="ns-body" id="nsBody">Camera PPG works best on Android with Chrome browser.</div>
+        <div class="ns-small" id="nsSmall">See compatibility info below</div>
+      </div>
+    </div>
+
+    <!-- Signal meter — replaces raw brightness meter -->
+    <div class="signal-section" id="signalSection">
+      <div class="signal-row">
+        <span class="signal-lbl">SIGNAL STR.</span>
+        <div class="signal-bar"><div class="signal-fill" id="signalFill"></div></div>
+        <span class="signal-val" id="signalVal" style="color:var(--teal)">—</span>
+      </div>
+      <div class="finger-status" id="fingerStatus" style="color:#FFC857">Cover camera lens completely with your fingertip</div>
+      <!-- 6 confirmation dots — fill as frames confirm finger -->
+      <div class="conf-dots" id="confDots">
+        <div class="conf-dot" id="dot0"></div>
+        <div class="conf-dot" id="dot1"></div>
+        <div class="conf-dot" id="dot2"></div>
+        <div class="conf-dot" id="dot3"></div>
+        <div class="conf-dot" id="dot4"></div>
+        <div class="conf-dot" id="dot5"></div>
+      </div>
+    </div>
+
+    <div class="progress-zone">
+      <div class="pr-wrap">
+        <svg class="pr-svg" width="72" height="72" viewBox="0 0 72 72">
+          <circle class="pr-bg" cx="36" cy="36" r="32"/>
+          <circle class="pr-fill" id="prFill" cx="36" cy="36" r="32"/>
+        </svg>
+        <div class="pr-text">
+          <div class="pr-secs" id="prSecs">30</div>
+          <div class="pr-lbl">SEC</div>
+        </div>
+      </div>
+      <div class="pr-info">
+        <div class="q-row"><span>SIGNAL QUALITY</span><span id="qPct" style="color:var(--mint)">—</span></div>
+        <div class="q-bar"><div class="q-fill" id="qFill"></div></div>
+        <div style="font-size:10px;color:var(--gray);margin-top:5px;font-family:'DM Mono',monospace" id="qStatus">Waiting to start…</div>
+      </div>
+    </div>
+
+    <div class="vitals-row">
+      <div class="vital-card">
+        <div class="vital-val dim" id="vHR">—</div>
+        <div class="vital-lbl">HEART RATE <span class="real-tag">REAL</span></div>
+      </div>
+      <div class="vital-card">
+        <div class="vital-val dim" id="vHRV">—</div>
+        <div class="vital-lbl">HRV ms <span class="real-tag">REAL</span></div>
+      </div>
+      <div class="vital-card">
+        <div class="vital-val dim" id="vPeaks">—</div>
+        <div class="vital-lbl">PEAKS FOUND</div>
+      </div>
+    </div>
+
+    <button class="cta" id="beginBtn" onclick="beginReading()" disabled>⏳ Requesting camera…</button>
+  </div>
+
+  <!-- ANALYZING -->
+  <div class="screen" id="screen-analyzing">
+    <div style="font-size:20px;font-weight:800;margin-bottom:4px">Analyzing signal</div>
+    <div style="font-size:11px;color:var(--gray);margin-bottom:20px">Processing your real PPG data.</div>
+    <div class="enc-box">
+      <div class="enc-hdr"><div class="enc-hdr-dot"></div><span class="enc-hdr-txt">SIGNAL PROCESSING PIPELINE</span></div>
+      <div class="layer-list">
+        <div class="layer-item" data-i="0"><span class="l-num">01</span><span class="l-name">Bandpass filter <span class="l-real">REAL</span></span><span class="l-stat wait" id="ls0">WAITING</span></div>
+        <div class="layer-item" data-i="1"><span class="l-num">02</span><span class="l-name">Peak detection <span class="l-real">REAL</span></span><span class="l-stat wait" id="ls1">WAITING</span></div>
+        <div class="layer-item" data-i="2"><span class="l-num">03</span><span class="l-name">HR & HRV (RMSSD) <span class="l-real">REAL</span></span><span class="l-stat wait" id="ls2">WAITING</span></div>
+        <div class="layer-item" data-i="3"><span class="l-num">04</span><span class="l-name">AF probability model <span class="l-demo">DEMO</span></span><span class="l-stat wait" id="ls3">WAITING</span></div>
+        <div class="layer-item" data-i="4"><span class="l-num">05</span><span class="l-name">Risk classification <span class="l-demo">DEMO</span></span><span class="l-stat wait" id="ls4">WAITING</span></div>
+      </div>
+    </div>
+    <div class="priv-note">
+      <div class="priv-icon">🔒</div>
+      <div class="priv-text"><strong>Steps 1–3 are real signal processing.</strong> Steps 4–5 are demo simulations — clinical AF detection needs a trained ML model on medical datasets.</div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div class="screen" id="screen-results">
+    <div class="scroll">
+      <div style="font-size:20px;font-weight:800;margin-bottom:3px">Your result</div>
+      <div style="font-size:10px;color:var(--gray);font-family:'DM Mono',monospace;margin-bottom:14px" id="resultMeta">TODAY · ON-DEVICE</div>
+      <div class="real-vitals-box">
+        <div class="rv-label">📡 REAL MEASUREMENTS FROM YOUR CAMERA</div>
+        <div class="rv-grid">
+          <div class="rv-item"><div class="rv-val" id="rHR">—</div><div class="rv-sub">BPM</div></div>
+          <div class="rv-item"><div class="rv-val" id="rHRV">—</div><div class="rv-sub">HRV RMSSD ms</div></div>
+          <div class="rv-item"><div class="rv-val" id="rPeaks">—</div><div class="rv-sub">PEAKS</div></div>
+        </div>
+        <div class="rv-note" id="rvNote"></div>
+      </div>
+      <div id="resultTierCard"></div>
+      <div class="explain-box">
+        <div class="explain-lbl">YOUR ACTUAL PPG WAVEFORM</div>
+        <canvas id="resultCanvas"></canvas>
+        <div class="explain-legend">
+          <div class="leg-item"><div class="leg-dot leg-peak"></div>Detected beat</div>
+          <div class="leg-item"><div class="leg-dot leg-irr"></div>Irregular interval</div>
+        </div>
+        <div class="explain-txt" id="explainTxt"></div>
+      </div>
+      <div id="actionCards"></div>
+      <button class="sec-btn" onclick="goHome()" style="margin-top:6px;margin-bottom:16px">← New reading</button>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="screen" id="screen-history">
+    <div style="font-size:20px;font-weight:800;margin-bottom:5px">Reading history</div>
+    <div style="font-size:10px;color:var(--gray);font-family:'DM Mono',monospace;letter-spacing:1px;margin-bottom:14px">STORED LOCALLY · REAL DATA</div>
+    <div class="scroll"><div class="hist-list" id="histList"></div></div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-item active" onclick="tabSwitch('home',this)"><div class="tab-icon">🏠</div><div class="tab-lbl">HOME</div></button>
+    <button class="tab-item" onclick="tabSwitch('history',this)"><div class="tab-icon">📊</div><div class="tab-lbl">HISTORY</div></button>
+    <button class="tab-item" onclick="tabSwitch('symptoms',this)"><div class="tab-icon">📝</div><div class="tab-lbl">SYMPTOMS</div></button>
+  </div>
+</div>
+<div class="toast" id="toastEl"></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// DEVICE COMPATIBILITY CHECK
+// ═══════════════════════════════════════════════════════════
+
+// We check 4 things:
+// 1. Does the browser support getUserMedia (camera API)?
+// 2. Does it support the torch (flashlight) API?
+// 3. Is it a known limited platform (iOS Safari)?
+// 4. Does it have a rear camera?
+
+const COMPAT = {
+  hasCamera: false,
+  hasTorch: false,
+  isIOS: false,
+  isSafari: false,
+  isAndroid: false,
+  torchEnabled: false,
+  level: 'unknown', // 'full' | 'partial' | 'none'
+};
+
+function detectPlatform(){
+  const ua = navigator.userAgent;
+  COMPAT.isIOS     = /iPhone|iPad|iPod/i.test(ua);
+  COMPAT.isAndroid = /Android/i.test(ua);
+  COMPAT.isSafari  = /^((?!chrome|android).)*safari/i.test(ua);
+  COMPAT.hasCamera = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+
+  // Determine compatibility level
+  if(!COMPAT.hasCamera){
+    COMPAT.level = 'none';
+  } else if(COMPAT.isIOS && COMPAT.isSafari){
+    // iOS Safari: camera works but torch API not exposed to web apps
+    COMPAT.level = 'partial';
+  } else if(COMPAT.isAndroid){
+    // Android Chrome: full torch support available
+    COMPAT.level = 'full';
+  } else {
+    // Desktop or other — camera available, torch likely not
+    COMPAT.level = 'partial';
+  }
+
+  updateCompatUI();
+}
+
+function updateCompatUI(){
+  const card   = document.getElementById('compatCard');
+  const icon   = document.getElementById('compatIcon');
+  const title  = document.getElementById('compatTitle');
+  const body   = document.getElementById('compatBody');
+  const sv     = document.getElementById('statusValue');
+  const ss     = document.getElementById('statusSub');
+  const ib     = document.getElementById('infoBar');
+  const capSub = document.getElementById('capSub');
+
+  card.style.display = 'flex';
+
+  if(COMPAT.level === 'full'){
+    card.className = 'compat-card ok';
+    icon.textContent = '✅';
+    title.textContent = 'Device fully supported';
+    body.textContent = 'Android + Chrome detected. Torch will turn on automatically for accurate signal.';
+    sv.textContent = 'Real PPG Engine Ready';
+    ss.textContent = 'Torch-assisted signal capture';
+    ib.className = 'info-bar real';
+    ib.textContent = '✦ REAL PPG · TORCH-ASSISTED · HR & HRV CALCULATED FROM YOUR SIGNAL ✦';
+
+  } else if(COMPAT.level === 'partial'){
+    card.className = 'compat-card warn';
+    icon.textContent = '⚠️';
+    if(COMPAT.isIOS && COMPAT.isSafari){
+      title.textContent = 'iPhone / Safari — limited support';
+      body.textContent = 'Safari does not allow torch control from web apps. PPG signal may be weaker. For best results, use a native iOS app or try in a bright room with good lighting.';
+      capSub.textContent = 'Cover rear camera lens fully. No torch available — work in bright light for better signal.';
+    } else {
+      title.textContent = 'Partial support — no torch control';
+      body.textContent = 'Camera available but torch/flashlight control is not supported in this browser. Signal quality may vary. Cover the lens in a dimly lit room for better results.';
+      capSub.textContent = 'Cover rear camera lens fully. No torch — dim lighting helps reduce noise.';
+    }
+    sv.textContent = 'Partial Support';
+    ss.textContent = 'No torch — signal may be weaker';
+    ib.className = 'info-bar warn';
+    ib.textContent = '⚠ LIMITED SUPPORT — NO TORCH CONTROL — SIGNAL MAY BE WEAKER ⚠';
+
+  } else {
+    card.className = 'compat-card bad';
+    icon.textContent = '❌';
+    title.textContent = 'Camera not available';
+    body.textContent = 'This device or browser does not support camera access. PPG heart rate measurement requires a camera. Try Chrome on Android for full support.';
+    sv.textContent = 'Not Supported';
+    ss.textContent = 'Camera API unavailable';
+    ib.className = 'info-bar err';
+    ib.textContent = '✕ CAMERA NOT AVAILABLE — CANNOT PERFORM REAL PPG READING ✕';
+    document.getElementById('startBtn').disabled = true;
+  }
+}
+
+// Run on load
+detectPlatform();
+
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+let camStream        = null;
+let captureActive    = false;
+let captureInterval  = null;
+let waveAnim         = null;
+let lightReader      = null;
+let ppgSampleInterval= null;
+let frameCanvas      = null;
+let frameCtx         = null;
+
+// Finger detection — now uses VARIATION not raw brightness
+// Key insight: a finger over the lens makes the image uniformly
+// dark red. We detect this by checking:
+// (a) the red channel is dominant over green/blue
+// (b) the frame-to-frame variation (AC signal) is present — that's the pulse
+let fingerDetected       = false;
+let fingerConfirmedFrames= 0;
+const FINGER_CONFIRM_FRAMES = 8;
+
+// Raw red channel history for variation calculation
+let redHistory = [];
+const RED_HISTORY_LEN = 15; // frames to keep for variation check
+
+// PPG buffer
+const PPG_SAMPLE_RATE = 30;
+let ppgBuffer     = [];
+let ppgTimestamps = [];
+
+// Final results
+let realResults = { hr:null, hrv:null, peaks:[], peakCount:0, rrIntervals:[], signalQuality:0, rawSignal:[] };
+let readingHistory = [];
+
+// ═══════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+}
+function goHome(){ stopAll(); showScreen('home'); updateHomeLastReading(); }
+function goSymptoms(){ showScreen('symptoms'); }
+function goCapture(){
+  if(COMPAT.level === 'none'){ toast('Camera not available on this device'); return; }
+  resetCaptureUI();
+  showScreen('capture');
+  requestCamera();
+}
+function cancelCapture(){ stopAll(); goHome(); }
+function tabSwitch(tab,el){
+  document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  if(tab==='home') goHome();
+  else if(tab==='history'){ showScreen('history'); renderHistory(); }
+  else if(tab==='symptoms') goSymptoms();
+}
+
+// ═══════════════════════════════════════════════════════════
+// CAMERA REQUEST
+// ═══════════════════════════════════════════════════════════
+function requestCamera(){
+  const overlay = document.getElementById('camOverlay');
+  const ns      = document.getElementById('notSupported');
+  const btn     = document.getElementById('beginBtn');
+
+  navigator.mediaDevices.getUserMedia({
+    video:{ facingMode:'environment', width:{ideal:320}, height:{ideal:240} }
+  }).then(stream=>{
+    camStream = stream;
+    const video = document.getElementById('videoEl');
+    video.srcObject = stream;
+    video.play();
+
+    // Set up pixel sampling canvas
+    frameCanvas = document.createElement('canvas');
+    frameCanvas.width = 16; frameCanvas.height = 16;
+    frameCtx = frameCanvas.getContext('2d');
+
+    // Try to enable torch
+    tryEnableTorch(stream);
+
+    // Update overlay
+    document.getElementById('overlayIcon').textContent  = '👆';
+    document.getElementById('overlayTitle').textContent = 'Camera active';
+    document.getElementById('overlayBody').textContent  = 'Cover lens fully with fingertip, then tap Begin';
+    btn.disabled = false;
+    btn.textContent = '▶  Begin Reading (30s)';
+
+    // Show signal section and start passive monitoring
+    document.getElementById('signalSection').classList.add('visible');
+    startPassiveMonitor(video);
+
+  }).catch(err=>{
+    console.warn('Camera error:', err);
+    overlay.classList.add('hidden');
+    ns.style.display = 'flex';
+
+    document.getElementById('nsTitle').textContent = 'Camera access denied';
+    document.getElementById('nsBody').textContent  = 'Please allow camera access in your browser settings and reload the page.';
+    document.getElementById('nsSmall').textContent = err.name || 'Permission denied';
+    btn.disabled = true;
+    btn.textContent = '✕ Camera unavailable';
+  });
+}
+
+// ── Torch control ─────────────────────────────────────────
+// Uses the ImageCapture / applyConstraints API (Chrome Android)
+// Falls back gracefully on unsupported browsers
+async function tryEnableTorch(stream){
+  const badge = document.getElementById('torchBadge');
+  try {
+    const track = stream.getVideoTracks()[0];
+    const capabilities = track.getCapabilities ? track.getCapabilities() : {};
+
+    if(capabilities.torch){
+      // Device supports torch!
+      await track.applyConstraints({ advanced: [{ torch: true }] });
+      COMPAT.torchEnabled = true;
+      badge.textContent = '🔦 TORCH ON';
+      badge.className = 'on';
+      toast('Torch enabled for better signal');
+    } else {
+      // No torch support
+      badge.textContent = '🔦 NO TORCH';
+      badge.className = 'na';
+      if(COMPAT.isIOS){
+        badge.textContent = '🍎 iOS — NO TORCH API';
+      }
+    }
+  } catch(e){
+    console.warn('Torch error:', e);
+    badge.textContent = '🔦 TORCH UNAVAIL';
+    badge.className = 'off';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// IMPROVED FINGER DETECTION
+// ═══════════════════════════════════════════════════════════
+// The OLD approach: check if red channel > threshold (brightness)
+// Problem: without torch, a covered lens is DARK not bright
+//
+// The NEW approach uses TWO signals:
+//
+// 1. RED DOMINANCE: when a finger covers the lens, the red channel
+//    is much higher than green/blue (blood absorbs green/blue,
+//    passes red). We check: red > green AND red > blue.
+//    This works even without a torch.
+//
+// 2. AC VARIATION: a pulse causes tiny brightness changes
+//    (the heart pumping blood changes how much light passes through).
+//    We measure the standard deviation of recent red values.
+//    If stdDev is in a sensible range, a pulse signal is present.
+//    Too low = no finger (flat image). Too high = moving too much.
+
+function sampleFrame(video){
+  if(!frameCtx || !video || video.readyState < 2) return null;
+  frameCtx.drawImage(video, 0, 0, 16, 16);
+  const px = frameCtx.getImageData(0, 0, 16, 16).data;
+  let rSum=0, gSum=0, bSum=0, count=0;
+  for(let i=0; i<px.length; i+=4){
+    rSum += px[i];
+    gSum += px[i+1];
+    bSum += px[i+2];
+    count++;
+  }
+  return { r: rSum/count, g: gSum/count, b: bSum/count };
+}
+
+function isFingerCovering(sample){
+  if(!sample) return { covering: false, strength: 0 };
+
+  const { r, g, b } = sample;
+
+  // 1. Red dominance check
+  // With torch: red will be very bright (150-220), green/blue low
+  // Without torch: all will be dark, but red still dominates
+  const redDominance = r - Math.max(g, b);
+
+  // 2. Variation check using recent history
+  redHistory.push(r);
+  if(redHistory.length > RED_HISTORY_LEN) redHistory.shift();
+
+  let variation = 0;
+  if(redHistory.length >= 5){
+    const mean = redHistory.reduce((a,b)=>a+b,0)/redHistory.length;
+    const variance = redHistory.reduce((a,v)=>a+(v-mean)**2,0)/redHistory.length;
+    variation = Math.sqrt(variance);
+  }
+
+  // Decision logic:
+  // WITH torch: red dominance > 30 and some variation
+  // WITHOUT torch: red dominance > 5 and image is uniformly darkish
+  const torchThresholdDom = 30;
+  const noTorchThresholdDom = 5;
+  const domThreshold = COMPAT.torchEnabled ? torchThresholdDom : noTorchThresholdDom;
+
+  // Variation: 0.5–15 means pulse signal present
+  // < 0.5 = perfectly flat = no finger or not illuminated
+  // > 20  = too much movement
+  const hasVariation = variation > 0.3 && variation < 25;
+  const hasDominance = redDominance > domThreshold;
+
+  // Extra: if no torch, check the image is dark (all channels low)
+  const isDark = (r + g + b) / 3 < 180;
+  const isUniformDark = !COMPAT.torchEnabled ? (isDark && hasDominance) : hasDominance;
+
+  const covering = isUniformDark && hasVariation;
+
+  // Signal strength 0–100 for display
+  // Based on: how dominant red is + how stable the variation is
+  const domScore  = Math.min(100, Math.max(0, (redDominance / 60) * 70));
+  const varScore  = hasVariation ? Math.min(30, variation * 2) : 0;
+  const strength  = Math.round(domScore + varScore);
+
+  return { covering, strength, r, redDominance, variation };
+}
+
+// ═══════════════════════════════════════════════════════════
+// PASSIVE MONITOR (before reading starts)
+// ═══════════════════════════════════════════════════════════
+function startPassiveMonitor(video){
+  lightReader = setInterval(()=>{
+    const sample = sampleFrame(video);
+    const result = isFingerCovering(sample);
+    updateSignalUI(result, false);
+  }, 100);
+}
+
+function updateSignalUI(result, counting){
+  const fill   = document.getElementById('signalFill');
+  const val    = document.getElementById('signalVal');
+  const status = document.getElementById('fingerStatus');
+  const outer  = document.getElementById('camOuter');
+
+  const pct = Math.min(100, result.strength || 0);
+  fill.style.width = pct+'%';
+  val.textContent  = pct+'%';
+
+  if(result.covering){
+    fill.style.background  = 'var(--mint)';
+    val.style.color        = 'var(--mint)';
+    status.style.color     = 'var(--mint)';
+    status.textContent     = counting ? '✓ Finger detected — hold very still' : '✓ Good placement — tap Begin when ready';
+    outer.classList.add('good');
+  } else {
+    fill.style.background  = 'var(--teal)';
+    val.style.color        = 'var(--teal)';
+    status.style.color     = 'var(--amber)';
+    outer.classList.remove('good');
+    if((result.r||0) > 200 && !COMPAT.torchEnabled){
+      status.textContent = 'Too bright — try covering in a darker area';
+    } else if((result.variation||0) > 20){
+      status.textContent = 'Too much movement — hold still';
+    } else {
+      status.textContent = COMPAT.torchEnabled
+        ? 'Cover rear camera lens completely'
+        : 'Cover lens completely — press firmly';
+    }
+  }
+
+  // Update confirmation dots
+  updateConfDots();
+}
+
+function updateConfDots(){
+  for(let i=0; i<6; i++){
+    const dot = document.getElementById('dot'+i);
+    if(i < fingerConfirmedFrames){
+      dot.className = 'conf-dot filled';
+    } else if(i === fingerConfirmedFrames){
+      dot.className = 'conf-dot partial';
+    } else {
+      dot.className = 'conf-dot';
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// BEGIN READING
+// ═══════════════════════════════════════════════════════════
+function beginReading(){
+  if(captureActive) return;
+  captureActive = true;
+  ppgBuffer = []; ppgTimestamps = [];
+  redHistory = [];
+  fingerDetected = false; fingerConfirmedFrames = 0;
+  realResults = { hr:null, hrv:null, peaks:[], peakCount:0, rrIntervals:[], signalQuality:0, rawSignal:[] };
+
+  const btn = document.getElementById('beginBtn');
+  btn.disabled = true;
+  btn.textContent = '📡 Reading in progress…';
+  document.getElementById('camOuter').classList.add('live');
+  document.getElementById('camOverlay').classList.add('hidden');
+  setVital('vHR','—',true); setVital('vHRV','—',true); setVital('vPeaks','—',true);
+  document.getElementById('qStatus').textContent = 'Place finger on camera lens…';
+
+  const wc = document.getElementById('waveCanvas');
+  wc.style.display = 'block';
+  wc.width  = wc.offsetWidth  * 2;
+  wc.height = wc.offsetHeight * 2;
+  drawWave();
+
+  const video = document.getElementById('videoEl');
+
+  // HIGH FREQUENCY sampler: ~30fps for PPG buffer
+  ppgSampleInterval = setInterval(()=>{
+    const sample = sampleFrame(video);
+    if(sample && fingerDetected){
+      ppgBuffer.push(sample.r);
+      ppgTimestamps.push(Date.now());
+    }
+  }, Math.round(1000 / PPG_SAMPLE_RATE));
+
+  // 1-second UI ticker
+  let elapsed = 0;
+  const totalSecs = 30;
+  const circ = 201;
+
+  captureInterval = setInterval(()=>{
+    elapsed++;
+    document.getElementById('prSecs').textContent = Math.max(0, totalSecs-elapsed);
+    document.getElementById('prFill').style.strokeDashoffset = circ - (elapsed/totalSecs)*circ;
+
+    // Check finger each second
+    const sample = sampleFrame(video);
+    const result = isFingerCovering(sample);
+    updateSignalUI(result, true);
+
+    if(result.covering){
+      fingerConfirmedFrames = Math.min(fingerConfirmedFrames+1, FINGER_CONFIRM_FRAMES+2);
+    } else {
+      fingerConfirmedFrames = Math.max(0, fingerConfirmedFrames-1);
+    }
+
+    if(fingerConfirmedFrames >= FINGER_CONFIRM_FRAMES && !fingerDetected){
+      fingerDetected = true;
+      document.getElementById('qStatus').textContent = 'Signal acquired — keep still…';
+    }
+
+    if(fingerDetected && ppgBuffer.length > PPG_SAMPLE_RATE * 3){
+      const liveHR = estimateLiveHR();
+      if(liveHR > 0){
+        setVital('vHR', Math.round(liveHR), false);
+        setVital('vPeaks', realResults.peaks.length, false);
+        const q = Math.min(100, Math.round((ppgBuffer.length/(PPG_SAMPLE_RATE*totalSecs))*100));
+        document.getElementById('qFill').style.width = q+'%';
+        document.getElementById('qPct').textContent = q+'%';
+      }
+      if(realResults.hrv){
+        setVital('vHRV', Math.round(realResults.hrv), false);
+      }
+    }
+
+    if(!fingerDetected){
+      document.getElementById('qFill').style.width = '0%';
+      document.getElementById('qPct').textContent = '—';
+    }
+
+    if(elapsed >= totalSecs){
+      clearInterval(captureInterval);   captureInterval=null;
+      clearInterval(ppgSampleInterval); ppgSampleInterval=null;
+      if(lightReader){ clearInterval(lightReader); lightReader=null; }
+      if(waveAnim){ cancelAnimationFrame(waveAnim); waveAnim=null; }
+      turnOffTorch();
+      stopCamStream();
+      computeFinalResults();
+      goAnalyzing();
+    }
+  }, 1000);
+}
+
+async function turnOffTorch(){
+  try {
+    if(camStream && COMPAT.torchEnabled){
+      const track = camStream.getVideoTracks()[0];
+      await track.applyConstraints({ advanced: [{ torch: false }] });
+    }
+  } catch(e){ /* ignore */ }
+}
+
+// ═══════════════════════════════════════════════════════════
+// REAL PPG SIGNAL PROCESSING
+// ═══════════════════════════════════════════════════════════
+
+// BANDPASS FILTER
+// Keeps only frequencies in the 0.5–4 Hz range (30–240 BPM)
+// Low-pass: smoothing removes high-frequency noise (hand tremor)
+// High-pass: subtracting slow average removes DC drift (ambient light)
+function bandpassFilter(signal){
+  if(signal.length < 10) return signal;
+  const filtered = [];
+  const LP_WIN = 3;
+  const HP_WIN = 45;
+  for(let i=0; i<signal.length; i++){
+    let lpSum=0, lpN=0;
+    for(let j=Math.max(0,i-LP_WIN); j<=Math.min(signal.length-1,i+LP_WIN); j++){ lpSum+=signal[j]; lpN++; }
+    const lp = lpSum/lpN;
+    let hpSum=0, hpN=0;
+    for(let j=Math.max(0,i-HP_WIN); j<=Math.min(signal.length-1,i+HP_WIN); j++){ hpSum+=signal[j]; hpN++; }
+    filtered.push(lp - hpSum/hpN);
+  }
+  return filtered;
+}
+
+// PEAK DETECTION
+// Finds heartbeat peaks — samples that are:
+// - above a dynamic threshold (mean + fraction of stdDev)
+// - local maximum in a window
+// - at least MIN_DISTANCE samples from the last peak
+function detectPeaks(signal, sampleRate){
+  if(signal.length < sampleRate) return [];
+  const mean = signal.reduce((a,b)=>a+b,0)/signal.length;
+  const std  = Math.sqrt(signal.reduce((a,b)=>a+(b-mean)**2,0)/signal.length);
+  const threshold  = mean + std*0.4;
+  const MIN_DIST   = Math.round(sampleRate*0.35); // 0.35s min between beats
+  const WIN        = Math.round(sampleRate*0.15);
+  const peaks = [];
+  let lastPeak = -MIN_DIST;
+  for(let i=WIN; i<signal.length-WIN; i++){
+    if(i-lastPeak < MIN_DIST) continue;
+    if(signal[i] < threshold) continue;
+    let isMax = true;
+    for(let j=i-WIN; j<=i+WIN; j++){ if(signal[j]>signal[i]){isMax=false;break;} }
+    if(isMax){ peaks.push(i); lastPeak=i; }
+  }
+  return peaks;
+}
+
+// HEART RATE — peaks per minute
+function calculateHR(peaks, totalSamples, sampleRate){
+  if(peaks.length < 2) return null;
+  const durationSecs = totalSamples/sampleRate;
+  const bpm = (peaks.length/durationSecs)*60;
+  return (bpm >= 30 && bpm <= 200) ? bpm : null;
+}
+
+// HRV — RMSSD (standard clinical metric)
+// Root Mean Square of Successive Differences between R-R intervals
+function calculateHRV(peaks, sampleRate){
+  if(peaks.length < 4) return null;
+  const peakTimes = peaks.map(p=>p/sampleRate);
+  const rrIntervals = [];
+  for(let i=1; i<peakTimes.length; i++){
+    const rr = (peakTimes[i]-peakTimes[i-1])*1000;
+    if(rr>=300 && rr<=2000) rrIntervals.push(rr);
+  }
+  if(rrIntervals.length < 3) return null;
+  let sumSqDiff=0, count=0;
+  for(let i=1; i<rrIntervals.length; i++){
+    const diff = rrIntervals[i]-rrIntervals[i-1];
+    sumSqDiff += diff*diff; count++;
+  }
+  const rmssd = Math.sqrt(sumSqDiff/count);
+  return (rmssd>=1 && rmssd<=300) ? { rmssd, rrIntervals } : null;
+}
+
+// LIVE ESTIMATE every second during reading
+function estimateLiveHR(){
+  if(ppgBuffer.length < PPG_SAMPLE_RATE*3) return 0;
+  const window   = ppgBuffer.slice(-PPG_SAMPLE_RATE*6);
+  const filtered = bandpassFilter(window);
+  const peaks    = detectPeaks(filtered, PPG_SAMPLE_RATE);
+  realResults.peaks = peaks;
+
+  // Also update live HRV
+  const hrvResult = calculateHRV(peaks, PPG_SAMPLE_RATE);
+  if(hrvResult) realResults.hrv = hrvResult.rmssd;
+
+  return calculateHR(peaks, filtered.length, PPG_SAMPLE_RATE) || 0;
+}
+
+// FINAL COMPUTATION after reading ends
+function computeFinalResults(){
+  if(ppgBuffer.length < PPG_SAMPLE_RATE*5){
+    realResults.signalQuality = 0;
+    return;
+  }
+  const filtered  = bandpassFilter(ppgBuffer);
+  const peaks     = detectPeaks(filtered, PPG_SAMPLE_RATE);
+  const hr        = calculateHR(peaks, ppgBuffer.length, PPG_SAMPLE_RATE);
+  const hrvResult = calculateHRV(peaks, PPG_SAMPLE_RATE);
+
+  realResults.rawSignal    = filtered;
+  realResults.peaks        = peaks;
+  realResults.peakCount    = peaks.length;
+  realResults.hr           = hr ? Math.round(hr) : null;
+  realResults.hrv          = hrvResult ? Math.round(hrvResult.rmssd) : null;
+  realResults.rrIntervals  = hrvResult ? hrvResult.rrIntervals : [];
+  realResults.signalQuality= Math.min(100, Math.round((ppgBuffer.length/(PPG_SAMPLE_RATE*30))*100));
+}
+
+// ═══════════════════════════════════════════════════════════
+// WAVEFORM — shows real PPG data
+// ═══════════════════════════════════════════════════════════
+function drawWave(){
+  const wc = document.getElementById('waveCanvas');
+  if(!wc) return;
+  const ctx = wc.getContext('2d');
+  const W=wc.width, H=wc.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='rgba(13,27,62,0.75)'; ctx.fillRect(0,0,W,H);
+  ctx.beginPath();
+  ctx.strokeStyle = fingerDetected ? '#00B4CC' : '#4A6278';
+  ctx.lineWidth=2.5;
+  ctx.shadowColor = fingerDetected ? '#00B4CC' : 'transparent';
+  ctx.shadowBlur  = fingerDetected ? 7 : 0;
+  const displayLen=80;
+  if(fingerDetected && ppgBuffer.length>20){
+    const slice = ppgBuffer.slice(-displayLen);
+    const min=Math.min(...slice), max=Math.max(...slice), range=max-min||1;
+    for(let i=0;i<slice.length;i++){
+      const x=(i/displayLen)*W;
+      const y=H*0.85-((slice[i]-min)/range)*H*0.7;
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+  } else {
+    // flat idle line
+    for(let i=0;i<200;i++){
+      const x=(i/200)*W;
+      const y=H*0.5+Math.sin(i*0.4)*1.5;
+      i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    }
+  }
+  ctx.stroke(); ctx.shadowBlur=0;
+  waveAnim=requestAnimationFrame(drawWave);
+}
+
+// ═══════════════════════════════════════════════════════════
+// ANALYZING
+// ═══════════════════════════════════════════════════════════
+function goAnalyzing(){
+  showScreen('analyzing');
+  for(let i=0;i<5;i++){
+    document.querySelector(`[data-i="${i}"]`).classList.remove('active','done');
+    const s=document.getElementById('ls'+i);
+    s.className='l-stat wait'; s.textContent='WAITING';
+  }
+  const delays=[0,800,1500,2300,3100];
+  const durs  =[600,600,600,700,600];
+  delays.forEach((d,i)=>{
+    setTimeout(()=>{
+      const item=document.querySelector(`[data-i="${i}"]`);
+      const s=document.getElementById('ls'+i);
+      item.classList.add('active'); s.className='l-stat running'; s.textContent='RUNNING…';
+      setTimeout(()=>{
+        item.classList.remove('active'); item.classList.add('done');
+        s.className='l-stat done'; s.textContent='DONE ✓';
+        if(i===4) setTimeout(showResults,500);
+      },durs[i]);
+    },d);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// RESULTS
+// ═══════════════════════════════════════════════════════════
+function showResults(){
+  showScreen('results');
+  const hr   = realResults.hr;
+  const hrv  = realResults.hrv;
+  const peaks= realResults.peakCount;
+  const hasData = hr!==null && hrv!==null;
+
+  document.getElementById('rHR').textContent   = hr   !== null ? hr   : '—';
+  document.getElementById('rHRV').textContent  = hrv  !== null ? hrv  : '—';
+  document.getElementById('rPeaks').textContent= peaks || '—';
+
+  const rvNote = document.getElementById('rvNote');
+  if(!hasData){
+    rvNote.textContent='⚠️ Not enough signal. Finger may not have covered the lens. Try again.';
+    rvNote.style.color='var(--amber)';
+  } else {
+    rvNote.textContent=`Calculated from ${ppgBuffer.length} real samples (~${Math.round(ppgBuffer.length/PPG_SAMPLE_RATE)}s). RMSSD is the standard clinical HRV metric.`;
+    rvNote.style.color='';
+  }
+
+  const tierKey = classifyDemo(hr, hrv);
+  const sc = TIERS[tierKey];
+  document.getElementById('resultMeta').textContent=
+    `TODAY · ON-DEVICE · ${Math.round(ppgBuffer.length/PPG_SAMPLE_RATE)}s SIGNAL`;
+  document.getElementById('resultTierCard').className='result-tier '+sc.cls;
+  document.getElementById('resultTierCard').innerHTML=`
+    <div class="tier-row">
+      <span class="tier-name ${sc.nameCls}">${sc.tier}</span>
+      <span class="tier-conf">${sc.conf}</span>
+    </div>
+    <div class="tier-desc">${sc.title}</div>
+    <div class="tier-detail">${sc.detail}</div>
+  `;
+  setTimeout(()=>drawResultWave(),80);
+  document.getElementById('explainTxt').textContent=sc.explainTxt;
+  document.getElementById('actionCards').innerHTML=sc.actions.map(a=>`
+    <div class="action-card ${a.primary?'ac-primary':'ac-secondary'}" onclick="toast('${a.sub}')">
+      <div class="ac-icon">${a.icon}</div>
+      <div><div class="ac-title">${a.title}</div><div class="ac-sub">${a.sub}</div></div>
+    </div>
+  `).join('');
+
+  readingHistory.unshift({ date:new Date(), hr, hrv, peaks, tier:sc.tier, badgeCls:sc.badgeCls, sampleCount:ppgBuffer.length });
+  updateHomeLastReading();
+}
+
+// Demo classification using REAL HR & HRV values
+function classifyDemo(hr, hrv){
+  if(hr===null||hrv===null) return 'nodata';
+  if(hr>=50&&hr<=100&&hrv>=25) return 'screen';
+  if(hr>100||hr<50||hrv<15)   return 'refer';
+  return 'border';
+}
+
+const TIERS = {
+  screen:{
+    tier:'SCREENING',cls:'rt-screen',nameCls:'tn-s',badgeCls:'b-screen',
+    conf:'Based on real signal',
+    title:'Normal rhythm indicators detected',
+    detail:'Your HR and HRV fall within typical ranges. No major irregularities found in the PPG signal.',
+    explainTxt:'Consistent beat-to-beat intervals detected. HR and RMSSD HRV were within normal physiological bounds. Note: this is a demo classification — not a clinical diagnosis.',
+    actions:[
+      {icon:'📅',title:'Schedule next reading',sub:'Reminder set for tomorrow',primary:false},
+      {icon:'📄',title:'Share with physician',sub:'Export your real PPG data',primary:false},
+    ],
+  },
+  border:{
+    tier:'BORDERLINE',cls:'rt-border',nameCls:'tn-b',badgeCls:'b-border',
+    conf:'Based on real signal',
+    title:'Some variability detected — monitor',
+    detail:'HR or HRV fell slightly outside typical ranges. Repeat a few times to confirm.',
+    explainTxt:'Beat-to-beat variability was higher than typical, or resting HR was slightly elevated. This can reflect stress, caffeine, or movement artefact. Retesting is recommended.',
+    actions:[
+      {icon:'🔁',title:'Retest in a few minutes',sub:'Keep still and try again',primary:true},
+      {icon:'📄',title:'Share with physician',sub:'Export your real PPG data',primary:false},
+    ],
+  },
+  refer:{
+    tier:'REFER',cls:'rt-refer',nameCls:'tn-r',badgeCls:'b-refer',
+    conf:'Based on real signal',
+    title:'Significant irregularity — consult a doctor',
+    detail:'HR or HRV was significantly outside typical ranges. Please consult a physician. This is a demo — NOT a clinical diagnosis.',
+    explainTxt:'Significant HR or HRV deviation detected. Could reflect arrhythmia, movement artefact, or poor signal. Please verify with a medical professional.',
+    actions:[
+      {icon:'📞',title:'Consult a physician',sub:'This is not a diagnosis — get checked',primary:true},
+      {icon:'📄',title:'Share your PPG data',sub:'Export for physician review',primary:false},
+    ],
+  },
+  nodata:{
+    tier:'NO DATA',cls:'rt-border',nameCls:'tn-b',badgeCls:'b-border',
+    conf:'Insufficient signal',
+    title:'Not enough signal captured',
+    detail:'The finger may not have covered the camera fully, or the reading was too short.',
+    explainTxt:'Place your fingertip firmly over the rear camera lens. Wait for the green signal confirmed indicator, then hold still for the full 30 seconds.',
+    actions:[
+      {icon:'🔁',title:'Try again',sub:'Cover the lens fully this time',primary:true},
+    ],
+  },
+};
+
+// Draw result waveform from real captured data
+function drawResultWave(){
+  const canvas=document.getElementById('resultCanvas');
+  if(!canvas) return;
+  const dpr=window.devicePixelRatio||1;
+  canvas.width=canvas.offsetWidth*dpr;
+  canvas.height=canvas.offsetHeight*dpr;
+  const ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  const W=canvas.offsetWidth, H=canvas.offsetHeight;
+  ctx.fillStyle='#091428'; ctx.fillRect(0,0,W,H);
+  const signal=realResults.rawSignal;
+  if(!signal||signal.length<10){
+    ctx.fillStyle='#4A6278'; ctx.font='11px DM Mono,monospace';
+    ctx.textAlign='center'; ctx.fillText('No signal data',W/2,H/2); return;
+  }
+  const min=Math.min(...signal),max=Math.max(...signal),range=max-min||1;
+  ctx.beginPath(); ctx.strokeStyle='#00B4CC'; ctx.lineWidth=1.5;
+  for(let i=0;i<signal.length;i++){
+    const x=(i/signal.length)*W;
+    const y=H*0.85-((signal[i]-min)/range)*H*0.7;
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+  // Mark peaks
+  realResults.peaks.forEach(p=>{
+    const x=(p/signal.length)*W;
+    const y=H*0.85-((signal[p]-min)/range)*H*0.7;
+    ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2);
+    ctx.fillStyle='rgba(0,229,195,0.85)'; ctx.fill();
+  });
+  // Highlight irregular RR intervals
+  const rr=realResults.rrIntervals;
+  if(rr.length>2){
+    const sorted=[...rr].sort((a,b)=>a-b);
+    const medRR=sorted[Math.floor(sorted.length/2)];
+    let rrIdx=0;
+    for(let i=1;i<realResults.peaks.length;i++){
+      if(rrIdx<rr.length&&rr[rrIdx]>medRR*1.5){
+        const x1=(realResults.peaks[i-1]/signal.length)*W;
+        const x2=(realResults.peaks[i]/signal.length)*W;
+        ctx.fillStyle='rgba(224,82,82,0.13)'; ctx.fillRect(x1,0,x2-x1,H);
+      }
+      rrIdx++;
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// HISTORY
+// ═══════════════════════════════════════════════════════════
+function renderHistory(){
+  const el=document.getElementById('histList');
+  if(readingHistory.length===0){
+    el.innerHTML='<div style="font-size:12px;color:var(--gray);text-align:center;padding:30px 0;font-family:\'DM Mono\',monospace">No readings yet.<br/>Complete your first heart check.</div>';
+    return;
+  }
+  el.innerHTML=readingHistory.map((r,i)=>{
+    const d=new Date(r.date);
+    const dateStr=i===0?'Today':d.toLocaleDateString('en-GB',{month:'short',day:'numeric'});
+    const timeStr=d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    return `<div class="hist-item">
+      <div>
+        <div class="hist-date">${dateStr}, ${timeStr}</div>
+        <div class="hist-sub">${Math.round(r.sampleCount/PPG_SAMPLE_RATE)}s · HR ${r.hr||'—'} bpm · HRV ${r.hrv||'—'}ms</div>
+      </div>
+      <span class="badge ${r.badgeCls}">${r.tier}</span>
+    </div>`;
+  }).join('');
+}
+
+function updateHomeLastReading(){
+  if(readingHistory.length===0) return;
+  const r=readingHistory[0];
+  const d=new Date(r.date);
+  document.getElementById('lastReadingDate').textContent='Today, '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('lastReadingSub').textContent=`${Math.round(r.sampleCount/PPG_SAMPLE_RATE)}s · HR ${r.hr||'—'} · HRV ${r.hrv||'—'}ms`;
+  const badge=document.getElementById('lastReadingBadge');
+  badge.style.display='';
+  badge.className='badge '+r.badgeCls;
+  badge.textContent=r.tier;
+}
+
+// ═══════════════════════════════════════════════════════════
+// UTILITIES
+// ═══════════════════════════════════════════════════════════
+function setVital(id,val,dim){
+  const el=document.getElementById(id);
+  el.textContent=val;
+  el.className='vital-val'+(dim?' dim':'');
+}
+function stopCamStream(){
+  if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
+}
+function stopAll(){
+  captureActive=false; fingerDetected=false; fingerConfirmedFrames=0;
+  if(captureInterval){clearInterval(captureInterval);captureInterval=null;}
+  if(ppgSampleInterval){clearInterval(ppgSampleInterval);ppgSampleInterval=null;}
+  if(lightReader){clearInterval(lightReader);lightReader=null;}
+  if(waveAnim){cancelAnimationFrame(waveAnim);waveAnim=null;}
+  turnOffTorch(); stopCamStream();
+}
+function resetCaptureUI(){
+  stopAll(); ppgBuffer=[]; ppgTimestamps=[]; redHistory=[];
+  document.getElementById('prSecs').textContent='30';
+  document.getElementById('prFill').style.strokeDashoffset='201';
+  document.getElementById('qFill').style.width='0%';
+  document.getElementById('qPct').textContent='—';
+  document.getElementById('qStatus').textContent='Waiting to start…';
+  setVital('vHR','—',true); setVital('vHRV','—',true); setVital('vPeaks','—',true);
+  document.getElementById('signalSection').classList.remove('visible');
+  document.getElementById('signalFill').style.width='0%';
+  document.getElementById('signalVal').textContent='—';
+  document.getElementById('fingerStatus').textContent='Cover camera lens with your fingertip';
+  document.getElementById('camOuter').classList.remove('live','good');
+  document.getElementById('camOverlay').classList.remove('hidden');
+  document.getElementById('camOverlay').style.opacity='1';
+  document.getElementById('camOverlay').style.pointerEvents='auto';
+  document.getElementById('notSupported').style.display='none';
+  document.getElementById('waveCanvas').style.display='none';
+  document.getElementById('torchBadge').className='';
+  document.getElementById('torchBadge').style.display='none';
+  document.getElementById('beginBtn').disabled=true;
+  document.getElementById('beginBtn').innerHTML='⏳ Requesting camera…';
+  document.getElementById('overlayIcon').textContent='📷';
+  document.getElementById('overlayTitle').textContent='Requesting camera…';
+  document.getElementById('overlayBody').textContent='Please allow camera access when prompted';
+  for(let i=0;i<6;i++) document.getElementById('dot'+i).className='conf-dot';
+  COMPAT.torchEnabled=false;
+}
+function toggleSym(el){ el.classList.toggle('sel'); }
+function toast(msg){
+  const t=document.getElementById('toastEl');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+</script>
+</body>
+</html>
